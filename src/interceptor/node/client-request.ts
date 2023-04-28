@@ -240,7 +240,34 @@ function ClientRequest(
           return false;
         }
       }
-      mockItem.sendBody(requestInfo, remoteResponse).then((responseBody) => {
+      mockItem.sendBody(requestInfo, remoteResponse).then(async (responseBody) => {
+        let statusCode = mockItem.status;
+        let headers = {
+          ...mockItem.headers,
+          ...(remoteResponse?.headers || {}),
+          'x-powered-by': 'http-request-mock'
+        };
+
+        if (mockItem.transformResponse) {
+          const transformed = await mockItem.transformResponse(requestInfo, mockItem);
+
+          if ('body' in transformed) {
+            responseBody = transformed.body;
+          }
+
+          if ('headers' in transformed) {
+            headers = {
+              ...headers,
+              ...transformed.headers
+            };
+          }
+
+          if ('status' in transformed) {
+            statusCode = transformed.status;
+          }
+        }
+
+
         if (responseBody instanceof Bypass) {
           if (remoteResponse) {
             throw new Error('[http-request-mock] A request which is marked by @remote tag cannot be bypassed.');
@@ -250,13 +277,9 @@ function ClientRequest(
         const spent = Date.now() - now;
         mocker.sendResponseLog(spent, responseBody, requestInfo, mockItem);
 
-        this.response.statusCode = mockItem.status;
+        this.response.statusCode = statusCode;
         this.response.statusMessage = HTTPStatusCodes[this.response.statusCode] || '',
-        this.response.headers = {
-          ...mockItem.headers,
-          ...(remoteResponse?.headers || {}),
-          'x-powered-by': 'http-request-mock'
-        };
+        this.response.headers = headers;
         this.response.rawHeaders = Object.entries(this.response.headers).reduce((res, item) => {
           return res.concat(item as never);
         }, []);

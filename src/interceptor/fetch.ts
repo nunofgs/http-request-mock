@@ -202,7 +202,7 @@ export default class FetchInterceptor extends Base{
     resolve: Function,
     remoteResponse: RemoteResponse | null = null
   ) {
-    const body = await mockItem.sendBody(requestInfo, remoteResponse);
+    let body = await mockItem.sendBody(requestInfo, remoteResponse);
     const now = Date.now();
     if (body instanceof Bypass) {
       if (remoteResponse) {
@@ -212,8 +212,32 @@ export default class FetchInterceptor extends Base{
     }
     const spent = (Date.now() - now) + (mockItem.delay || 0);
 
+    let statusCode = mockItem.status;
+    let headers = {
+      ...mockItem.headers,
+      ...(remoteResponse?.headers || {}),
+      'x-powered-by': 'http-request-mock'
+    };
+
+    if (mockItem.transformResponse) {
+      const transformed = await mockItem.transformResponse(requestInfo, mockItem);
+      if ('body' in transformed) {
+        body = transformed.body;
+      }
+      if ('headers' in transformed) {
+        headers = {
+          ...headers,
+          ...transformed.headers
+        };
+      }
+
+      if ('status' in transformed) {
+        statusCode = transformed.status;
+      }
+    }
+
     this.mocker.sendResponseLog(spent, body, requestInfo, mockItem);
-    resolve(this.getFetchResponse(body, mockItem, requestInfo));
+    resolve(this.getFetchResponse(body, headers, statusCode, mockItem, requestInfo));
     return false;
   }
 
@@ -224,18 +248,17 @@ export default class FetchInterceptor extends Base{
    * @param {MockItem} mockItem
    * @param {RequestInfo} requestInfo
    */
-  getFetchResponse(responseBody: unknown, mockItem: MockItem, requestInfo: RequestInfo) {
+  getFetchResponse(responseBody: unknown, responseHeaders: Record<string, string>, responseStatus: number, mockItem: MockItem, requestInfo: RequestInfo) {
     const data = responseBody;
-    const status = mockItem.status;
+    const status = responseStatus;
     const statusText = HTTPStatusCodes[status] || '';
-
-    const headers = typeof Headers === 'function'
-      ? new Headers({ ...mockItem.headers, 'x-powered-by': 'http-request-mock' })
-      : Object.entries({ ...mockItem.headers, 'x-powered-by': 'http-request-mock' });
-
     const body = typeof Blob === 'function'
       ? new Blob([typeof data === 'string' ? data : JSON.stringify(data)])
       : data;
+
+    const headers = typeof Headers === 'function'
+      ? new Headers({ ...responseHeaders, 'x-powered-by': 'http-request-mock' })
+      : Object.entries({ ...responseHeaders, 'x-powered-by': 'http-request-mock' });
 
     if (typeof Response === 'function') {
       const response = new Response(body as BodyInit,{ status, statusText, headers });

@@ -47,6 +47,7 @@ export interface MockItemInfo {
   disable?: 'YES' | 'NO';
   times?: number;
   deProxy?: boolean;
+  transformResponse?: TransformFunction;
 }
 
 export interface MockItemExt {
@@ -220,3 +221,9 @@ export type HttpVerb = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 'A
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type Logs = Array<number | string | Record<string, any> | Logs[]>;
+
+export type TransformFunction = (requestInfo: RequestInfo, mockItem: MockItem) => {
+  body: unknown;
+  headers: Headers;
+  status: number;
+};

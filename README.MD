@@ -40,27 +40,33 @@ Get the [source code](https://github.com/huturen/http-request-mock-simple-case-v
 
 ## Table of Contents
 
-* [Introduction And Motivation](#Introduction-And-Motivation)
-* [Features](#Features)
-* [Installation](#Installation)
-* [Examples](#Examples)
-    - [Usage](#Usage)
-    - [Static response](#Static-response)
-    - [Dynamic response](#Dynamic-response)
-    - [Delay](#Delay)
-    - [HTTP-status](#HTTP-status)
-    - [Disable a mock item](#Disable-a-mock-item)
-    - [Limited number of mocking](#Limited-number-of-mocking)
-    - [Request information](#Request-information)
-* [Integration](#Integration)
-    - [Integration By Webpack plugin](#Integration-By-Webpack-plugin)
-    - [Integration By Command Line Tool](#Integration-By-Command-Line-Tool)
-* [Command Line Tool Options](#Command-Line-Tool-Options)
-* [API](#API)
-* [Unit test](#Unit-test)
-* [Mock data file](#Mock-data-file)
-* [FAQ](#FAQ)
-* [License](#License)
+- [http-request-mock ](#http-request-mock-)
+  - [Table of Contents](#table-of-contents)
+  - [Introduction And Motivation](#introduction-and-motivation)
+  - [Features](#features)
+  - [Installation](#installation)
+  - [Examples](#examples)
+      - [Usage](#usage)
+      - [Static response](#static-response)
+      - [Dynamic response](#dynamic-response)
+      - [Delay](#delay)
+      - [HTTP status](#http-status)
+      - [Disable a mock item](#disable-a-mock-item)
+      - [Limited number of mocking](#limited-number-of-mocking)
+      - [Request information](#request-information)
+      - [Interceptor](#interceptor)
+  - [Integration](#integration)
+      - [Integration By Webpack plugin](#integration-by-webpack-plugin)
+      - [Integration By Command Line Tool](#integration-by-command-line-tool)
+  - [Command Line Tool Options](#command-line-tool-options)
+  - [API](#api)
+      - [For HttpRequestMock](#for-httprequestmock)
+      - [For Mocker](#for-mocker)
+  - [Unit test](#unit-test)
+  - [Mock data file](#mock-data-file)
+  - [FAQ](#faq)
+  - [Integration Cases:](#integration-cases)
+  - [License](#license)
 
 
 
@@ -562,6 +568,7 @@ interface MockItemInfo {
   times?: number;
   body?: any; // response body
   status?: number; // http status code
+  transformResponse?: TransformFunction; // a function to dynamically return status, body and headers
 };
 ```
 

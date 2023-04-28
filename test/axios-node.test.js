@@ -202,4 +202,30 @@ describe('mock axios requests which are based on node http adaptor for node envi
     expect(res1.data).toBe('data1');
     expect(res2.data).toBe('data2');
   });
+
+  it('should support dynamic responses', async () => {
+    mocker.mock({
+      url: 'http://www.api.com/headers',
+      method: 'any',
+      transformResponse: () => {
+        return {
+          headers: {
+            custom: 'a-customized-header',
+            another: 'another-header'
+          },
+          body: 'custom-body',
+          status: 201
+        };
+      }
+    });
+
+    const res = await request('http://www.api.com/headers');
+    expect(res.data).toBe('custom-body');
+    expect(res.status).toBe(201);
+    expect(res.headers).toMatchObject({
+      custom: 'a-customized-header',
+      another: 'another-header',
+      'x-powered-by': 'http-request-mock',
+    });
+  });
 });

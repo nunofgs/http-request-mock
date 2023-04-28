@@ -1,7 +1,7 @@
 import Bypass from '../common/bypass';
 import { getQuery, isImported, isPromise, queryObject2String } from '../common/utils';
 import { Disable, DynamicImported, Header, HttpVerb, MockItemInfo, RequestInfo } from '../types';
-import { RemoteResponse } from './../types';
+import { RemoteResponse, TransformFunction } from './../types';
 
 export default class MockItem {
   public url: RegExp | string;
@@ -22,6 +22,7 @@ export default class MockItem {
   public deProxy = false; // Use this option to make the mock use case run in the browser instead of nodejs.
   // eslint-disable-next-line @typescript-eslint/ban-types
   public doOriginalRequest: Function;
+  public transformResponse?: TransformFunction;
 
   /**
    * Format specified mock item.
@@ -48,6 +49,7 @@ export default class MockItem {
     this.status = mockItem.status && /^[1-5][0-9][0-9]$/.test(mockItem.status+'') ? +mockItem.status : 200;
     this.disable = (mockItem.disable && /^(yes|true|1)$/.test(mockItem.disable) ? 'YES' : 'NO') as Disable;
     this.setBody(mockItem);
+    this.transformResponse = mockItem.transformResponse;
 
     const isUrlLiked = /^((get|post|put|patch|delete|head)\s+)?https?:\/\//i.test(mockItem.remote as string);
     const isDollarUrl = mockItem.remote === '$url';
